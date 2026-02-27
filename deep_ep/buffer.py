@@ -36,6 +36,7 @@ class Buffer:
                  low_latency_mode: bool = False,
                  num_qps_per_rank: int = 24,
                  allow_nvlink_for_low_latency_mode: bool = True,
+                 enforce_nvlink_check: bool = True,
                  allow_mnnvl: bool = False,
                  use_fabric: bool = False,
                  explicitly_destroy: bool = False,
@@ -54,6 +55,9 @@ class Buffer:
                 this is somehow incompatible with the hook-based overlapping.
                 Warning: PCIe connections may lead to errors due to memory ordering issues,
                 please make sure all connections are via NVLink.
+            enforce_nvlink_check: whether to enforce strict NVLink topology checks for non-NVSHMEM-intranode mode.
+                Set to `False` (or set env `DEEP_EP_SKIP_NVLINK_CHECK=1`) to bypass software NVLink checks on PCIe-only
+                clusters when you explicitly want internode RDMA + intranode NVSHMEM.
             allow_mnnvl: whether to allow MNNVL
             use_fabric: whether to use fabric API for memory buffers.
             enable_shrink: whether to enable shrink mode. The enable mode allocates a mask buffer to support masking ranks dynamically.
@@ -63,7 +67,9 @@ class Buffer:
             comm: the `mpi4py.MPI.Comm` communicator to use in case the group parameter is absent.
         """
         use_nvshmem_intranode = num_nvl_bytes > 0 and num_rdma_bytes == 0
-        if not use_nvshmem_intranode:
+        skip_nvlink_check = os.getenv("DEEP_EP_SKIP_NVLINK_CHECK", "0") == "1"
+        do_nvlink_check = enforce_nvlink_check and (not skip_nvlink_check)
+        if not use_nvshmem_intranode and do_nvlink_check:
             check_nvlink_connections(group)
         if low_latency_mode:
             raise ValueError("low_latency_mode is disabled in this build")

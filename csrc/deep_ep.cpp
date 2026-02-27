@@ -7,6 +7,7 @@
 #include <torch/python.h>
 
 #include <chrono>
+#include <cstdlib>
 #include <memory>
 
 #include "kernels/api.cuh"
@@ -124,6 +125,118 @@ void SharedMemoryAllocator::close_mem_handle(void* ptr) {
 }  // namespace shared_memory
 
 namespace deep_ep {
+
+#ifdef DISABLE_IBGDA
+namespace internode_ll {
+
+template <typename... Args>
+inline void ignore_unused(Args&&...) {}
+
+[[noreturn]] inline void ibgda_disabled() {
+    EP_HOST_ASSERT(false and "internode low-latency (IBGDA) is disabled during compilation");
+    std::abort();
+}
+
+void clean_low_latency_buffer(int* clean_0,
+                              int num_clean_int_0,
+                              int* clean_1,
+                              int num_clean_int_1,
+                              int rank,
+                              int num_ranks,
+                              int* mask_buffer,
+                              int* sync_buffer,
+                              cudaStream_t stream) {
+    ignore_unused(clean_0, num_clean_int_0, clean_1, num_clean_int_1, rank, num_ranks, mask_buffer, sync_buffer, stream);
+    ibgda_disabled();
+}
+
+void dispatch(void* packed_recv_x,
+              void* packed_recv_x_scales,
+              int* packed_recv_src_info,
+              int64_t* packed_recv_layout_range,
+              int* packed_recv_count,
+              int* mask_buffer,
+              int* cumulative_local_expert_recv_stats,
+              int64_t* dispatch_wait_recv_cost_stats,
+              void* rdma_recv_x,
+              int* rdma_recv_count,
+              void* rdma_x,
+              const void* x,
+              const topk_idx_t* topk_idx,
+              int* next_clean,
+              int num_next_clean_int,
+              int num_tokens,
+              int hidden,
+              int num_max_dispatch_tokens_per_rank,
+              int num_topk,
+              int num_experts,
+              int rank,
+              int num_ranks,
+              bool use_fp8,
+              bool round_scale,
+              bool use_ue8m0,
+              void* workspace,
+              int num_device_sms,
+              cudaStream_t stream,
+              int phases) {
+    ignore_unused(packed_recv_x, packed_recv_x_scales, packed_recv_src_info, packed_recv_layout_range, packed_recv_count,
+                  mask_buffer, cumulative_local_expert_recv_stats, dispatch_wait_recv_cost_stats, rdma_recv_x,
+                  rdma_recv_count, rdma_x, x, topk_idx, next_clean, num_next_clean_int, num_tokens, hidden,
+                  num_max_dispatch_tokens_per_rank, num_topk, num_experts, rank, num_ranks, use_fp8, round_scale,
+                  use_ue8m0, workspace, num_device_sms, stream, phases);
+    ibgda_disabled();
+}
+
+void combine(void* combined_x,
+             void* rdma_recv_x,
+             int* rdma_recv_flag,
+             void* rdma_send_x,
+             const void* x,
+             const topk_idx_t* topk_idx,
+             const float* topk_weights,
+             const int* src_info,
+             const int64_t* layout_range,
+             int* mask_buffer,
+             int64_t* combine_wait_recv_cost_stats,
+             int* next_clean,
+             int num_next_clean_int,
+             int num_combined_tokens,
+             int hidden,
+             int num_max_dispatch_tokens_per_rank,
+             int num_topk,
+             int num_experts,
+             int rank,
+             int num_ranks,
+             bool use_logfmt,
+             void* workspace,
+             int num_device_sms,
+             cudaStream_t stream,
+             int phases,
+             bool zero_copy) {
+    ignore_unused(combined_x, rdma_recv_x, rdma_recv_flag, rdma_send_x, x, topk_idx, topk_weights, src_info, layout_range,
+                  mask_buffer, combine_wait_recv_cost_stats, next_clean, num_next_clean_int, num_combined_tokens, hidden,
+                  num_max_dispatch_tokens_per_rank, num_topk, num_experts, rank, num_ranks, use_logfmt, workspace,
+                  num_device_sms, stream, phases, zero_copy);
+    ibgda_disabled();
+}
+
+void query_mask_buffer(int* mask_buffer_ptr, int num_ranks, int* output_mask_tensor, cudaStream_t stream) {
+    ignore_unused(mask_buffer_ptr, num_ranks, output_mask_tensor, stream);
+    ibgda_disabled();
+}
+
+void update_mask_buffer(int* mask_buffer_ptr, int rank_to_mask, bool mask, cudaStream_t stream) {
+    ignore_unused(mask_buffer_ptr, rank_to_mask, mask, stream);
+    ibgda_disabled();
+}
+
+void clean_mask_buffer(int* mask_buffer_ptr, int num_ranks, cudaStream_t stream) {
+    ignore_unused(mask_buffer_ptr, num_ranks, stream);
+    ibgda_disabled();
+}
+
+}  // namespace internode_ll
+#endif
 
 Buffer::Buffer(int rank,
                int num_ranks,
