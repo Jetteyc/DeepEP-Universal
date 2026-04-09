@@ -66,6 +66,13 @@ class Buffer:
                 Note: Releasing resources in the destructor may cause Python's exception handling process to hang.
             comm: the `mpi4py.MPI.Comm` communicator to use in case the group parameter is absent.
         """
+        import sys as _sys
+        print(
+            f"[DeepEP-Universal] Buffer.__init__ called: "
+            f"num_nvl_bytes={num_nvl_bytes}, num_rdma_bytes={num_rdma_bytes}, "
+            f"low_latency_mode={low_latency_mode}",
+            file=_sys.stderr,
+        )
         use_nvshmem_intranode = num_nvl_bytes > 0 and num_rdma_bytes == 0
         skip_nvlink_check = os.getenv("DEEP_EP_SKIP_NVLINK_CHECK", "0") == "1"
         do_nvlink_check = enforce_nvlink_check and (not skip_nvlink_check)
